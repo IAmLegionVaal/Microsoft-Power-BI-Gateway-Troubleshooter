@@ -1,0 +1,6 @@
+#requires -Version 5.1
+<# Created by Dewald Pretorius #>
+param([string]$OutputPath)
+if(-not $OutputPath){$OutputPath="$([Environment]::GetFolderPath('Desktop'))\PowerBI_Gateway_Reports"};New-Item $OutputPath -ItemType Directory -Force|Out-Null
+$svc=Get-Service PBIEgwService -ErrorAction SilentlyContinue;$drivers=Get-OdbcDriver -ErrorAction SilentlyContinue|Select-Object Name,Platform,Version;$targets='api.powerbi.com','login.microsoftonline.com','servicebus.windows.net';$net=foreach($t in $targets){[pscustomobject]@{Target=$t;HTTPS443=(Test-NetConnection $t -Port 443 -InformationLevel Quiet -WarningAction SilentlyContinue)}}
+@('MICROSOFT POWER BI GATEWAY TROUBLESHOOTER','Created by Dewald Pretorius',"Generated: $(Get-Date)","Gateway service: $($svc.Status)",($drivers|Format-Table -AutoSize|Out-String -Width 220),($net|Format-Table -AutoSize|Out-String -Width 220),'Guidance: verify service account, cluster membership, data-source credentials, driver bitness, outbound connectivity, TLS inspection, region, and gateway version.')|Set-Content (Join-Path $OutputPath 'Report.txt') -Encoding UTF8
